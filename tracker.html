@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vagas</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h1>Job Tracker</h1>
+
+    <div class="card counter-card">
+      <div class="counter-info">
+        <div class="counter-number" id="count">0</div>
+        <div class="counter-label">candidaturas</div>
+      </div>
+      <div class="counter-btns">
+        <button class="btn-c plus" onclick="change(1)">+</button>
+        <button class="btn-c minus" onclick="change(-1)">−</button>
+        <button class="btn-clear" onclick="resetCount()">CLEAR</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('entrevistas', this)">
+        Entrevistas
+      </button>
+      <button class="tab" onclick="switchTab('recusados', this)">
+        Recusados
+      </button>
+    </div>
+
+    <div class="card list-card" id="panel-entrevistas">
+      <div class="add-row">
+        <input
+          type="text"
+          id="input-empresa"
+          placeholder="Nome da empresa"
+          onkeydown="if (event.key === 'Enter') addEntry();"
+        />
+        <select id="input-status">
+          <option value="rh">Entrevista RH</option>
+          <option value="tecnico">Técnica</option>
+          <option value="final">Final</option>
+          <option value="oferta">Oferta</option>
+        </select>
+        <button class="btn-add" onclick="addEntry()">+</button>
+      </div>
+      <div id="list-entrevistas"></div>
+    </div>
+
+    <div class="card list-card" id="panel-recusados" style="display: none">
+      <div class="add-row">
+        <input
+          type="text"
+          id="input-rec"
+          placeholder="Nome da empresa"
+          onkeydown="if (event.key === 'Enter') addRecusado();"
+        />
+        <button class="btn-add" onclick="addRecusado()">+</button>
+      </div>
+      <div id="list-recusados"></div>
+    </div>
+
+    <div class="footer">
+      <button class="btn-io" onclick="exportData()">⬇ Exportar</button>
+      <button
+        class="btn-io"
+        onclick="document.getElementById('file-input').click()"
+      >
+        ⬆ Importar
+      </button>
+      <input
+        type="file"
+        id="file-input"
+        accept=".json"
+        style="display: none"
+        onchange="importData(event)"
+      />
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
