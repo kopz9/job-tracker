@@ -385,3 +385,52 @@ h1 {
   color: #555;
   letter-spacing: 1px;
 }
+
+.status-select {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  outline: none;
+}
+.status-select option {
+  background: #1a1a1a;
+}
+
+/* tint the select background to match badge colors */
+.status-select.enviado {
+  background: #1a2a3a;
+  color: #5bf;
+  border-color: #1a2a3a;
+}
+.status-select.rh {
+  background: #1a2a3a;
+  color: #5bf;
+  border-color: #1a2a3a;
+}
+.status-select.tecnico {
+  background: #2a1a3a;
+  color: #b5f;
+  border-color: #2a1a3a;
+}
+.status-select.final {
+  background: #1a3a2a;
+  color: #5f9;
+  border-color: #1a3a2a;
+}
+.status-select.oferta {
+  background: #3a3a1a;
+  color: #ff9;
+  border-color: #3a3a1a;
+}
+.status-select.ghosted {
+  background: #222;
+  color: #666;
+  border-color: #222;
+}

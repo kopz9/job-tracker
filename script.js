@@ -72,6 +72,15 @@ function addRecusado() {
   renderList();
 }
 
+function updateStatus(id, newStatus) {
+  const entry = state.entrevistas(find((e) => e.id === id));
+  if (entry) {
+    entry.status = newStatus;
+  }
+  save();
+  renderList();
+}
+
 function removeEntry(id) {
   state.entrevistas = state.entrevistas.filter((e) => e.id !== id);
   const maxPage = Math.max(1, Math.ceil(state.entrevistas.length / PER_PAGE));
@@ -124,12 +133,21 @@ function renderList() {
     el.innerHTML = slice
       .map(
         (e) => `
-      <div class="entry">
-        <span class="entry-name">${e.name}</span>
+       <div class="entry">
+         <span class="entry-name">${e.name}</span>
         <span class="entry-date">${formatDate(e.date)}</span>
-        <span class="badge ${e.status}">${LABELS[e.status]}</span>
+        <select class="status-select ${e.status}" onchange="updateStatus(${e.id}, this.value)">
+          ${Object.entries(LABELS)
+            .filter(([k]) => k !== "recusado")
+            .map(
+              ([k, v]) =>
+                `<option value="${k}" ${e.status === k ? "selected" : ""}>${v}</option>`,
+            )
+            .join("")}
+        </select>
         <button class="btn-del" onclick="removeEntry(${e.id})">✕</button>
-      </div>`,
+      </div>
+        `,
       )
       .join("");
     pgE.innerHTML = renderPagination("list-entrevistas", "entrevistas");
