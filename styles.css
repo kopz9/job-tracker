@@ -231,6 +231,10 @@ h1 {
   background: #1a2a3a;
   color: #5bf;
 }
+.badge.enviado {
+  background: #1a2a3a;
+  color: #5bf;
+}
 .badge.tecnico {
   background: #2a1a3a;
   color: #b5f;

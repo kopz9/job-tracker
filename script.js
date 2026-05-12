@@ -1,4 +1,5 @@
       const LABELS = {
+        enviado: "Enviado",
         rh: "Entrevista RH",
         tecnico: "Técnica",
         final: "Final",
@@ -34,7 +35,7 @@
       function addEntry() {
         const name = document.getElementById("input-empresa").value.trim();
         const status = document.getElementById("input-status").value;
-        if (!name) return;
+        if (!name) return alert('Nome nao pode ser vazio!');
         state.entrevistas.push({ id: Date.now(), name, status });
         document.getElementById("input-empresa").value = "";
         save();
