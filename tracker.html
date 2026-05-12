@@ -4,11 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vagas</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <h1>Job Tracker</h1>
-
     <div class="card counter-card">
       <div class="counter-info">
         <div class="counter-number" id="count">0</div>
@@ -38,16 +37,19 @@
           placeholder="Nome da empresa"
           onkeydown="if (event.key === 'Enter') addEntry();"
         />
+        <input type="date" id="input-date" />
         <select id="input-status">
           <option value="enviado">Enviado</option>
           <option value="rh">Entrevista RH</option>
           <option value="tecnico">Técnica</option>
           <option value="final">Final</option>
           <option value="oferta">Oferta</option>
+          <option value="ghosted">Ghosted</option>
         </select>
         <button class="btn-add" onclick="addEntry()">+</button>
       </div>
       <div id="list-entrevistas"></div>
+      <div id="pg-entrevistas"></div>
     </div>
 
     <div class="card list-card" id="panel-recusados" style="display: none">
@@ -58,9 +60,11 @@
           placeholder="Nome da empresa"
           onkeydown="if (event.key === 'Enter') addRecusado();"
         />
+        <input type="date" id="input-rec-date" />
         <button class="btn-add" onclick="addRecusado()">+</button>
       </div>
       <div id="list-recusados"></div>
+      <div id="pg-recusados"></div>
     </div>
 
     <div class="footer">
