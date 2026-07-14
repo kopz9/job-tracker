@@ -6,6 +6,7 @@ const LABELS = {
   oferta: "Oferta",
   recusado: "Recusado",
   ghosted: "Ghosted",
+  recusado: "Recusado"
 };
 
 const PER_PAGE = 5;
@@ -73,7 +74,7 @@ function addRecusado() {
 }
 
 function updateStatus(id, newStatus) {
-  const entry = state.entrevistas(find((e) => e.id === id));
+  const entry = state.entrevistas.find((e) => e.id === id);
   if (entry) {
     entry.status = newStatus;
   }
@@ -138,7 +139,6 @@ function renderList() {
         <span class="entry-date">${formatDate(e.date)}</span>
         <select class="status-select ${e.status}" onchange="updateStatus(${e.id}, this.value)">
           ${Object.entries(LABELS)
-            .filter(([k]) => k !== "recusado")
             .map(
               ([k, v]) =>
                 `<option value="${k}" ${e.status === k ? "selected" : ""}>${v}</option>`,
