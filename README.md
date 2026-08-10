@@ -1,2 +1,3 @@
 # Job Tracker
-feito com claude 
+
+Disponivel em : https://kopz9.github.io/job-tracker/tracker.html
