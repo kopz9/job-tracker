@@ -7,83 +7,58 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <h1>Job Tracker</h1>
-    <div class="card counter-card">
-      <div class="counter-info">
-        <div class="counter-number" id="count">0</div>
-        <div class="counter-label">candidaturas</div>
-      </div>
-      <div class="counter-btns">
-        <button class="btn-c plus" onclick="change(1)">+</button>
-        <button class="btn-c minus" onclick="change(-1)">−</button>
-        <button class="btn-clear" onclick="resetCount()">CLEAR</button>
-      </div>
-    </div>
+    <a href="#" class="site-link" onclick="window.scrollTo({top:0,behavior:'smooth'}); return false;">
+      <h1>Job Tracker</h1>
+    </a>
 
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('entrevistas', this)">
-        Entrevistas
-      </button>
-      <button class="tab" onclick="switchTab('recusados', this)">
-        Recusados
-      </button>
-    </div>
+    <div class="page-wrap">
 
-    <div class="card list-card" id="panel-entrevistas">
-      <div class="add-row">
+      <div class="card counter-card">
+        <div class="counter-info">
+          <div class="counter-number" id="count">0</div>
+          <div class="counter-label">candidaturas</div>
+        </div>
+        <div class="counter-btns">
+          <button class="btn-c plus" onclick="change(1)">+</button>
+          <button class="btn-c minus" onclick="change(-1)">−</button>
+          <button class="btn-clear" onclick="resetCount()">CLEAR</button>
+        </div>
+      </div>
+
+      <div class="add-row board-add-row">
         <input
           type="text"
           id="input-empresa"
           placeholder="Nome da empresa"
-          onkeydown="if (event.key === 'Enter') addEntry();"
+          maxlength="30"
+          onkeydown="if (event.key === 'Enter') addApplication();"
         />
         <input type="date" id="input-date" />
-        <select id="input-status">
-          <option value="enviado">Enviado</option>
-          <option value="rh">Entrevista RH</option>
-          <option value="tecnico">Técnica</option>
-          <option value="final">Final</option>
-          <option value="oferta">Oferta</option>
-          <option value="ghosted">Ghosted</option>
-          <option value="recusado">Recusado</option>
-        </select>
-        <button class="btn-add" onclick="addEntry()">+</button>
+        <button class="btn-add" onclick="addApplication()">+</button>
       </div>
-      <div id="list-entrevistas"></div>
-      <div id="pg-entrevistas"></div>
-    </div>
 
-    <div class="card list-card" id="panel-recusados" style="display: none">
-      <div class="add-row">
+      <div class="board" id="board"></div>
+
+      <div class="footer">
+        <button class="btn-io" onclick="exportData()">⬇ Exportar</button>
+        <button
+          class="btn-io"
+          onclick="document.getElementById('file-input').click()"
+        >
+          ⬆ Importar
+        </button>
         <input
-          type="text"
-          id="input-rec"
-          placeholder="Nome da empresa"
-          onkeydown="if (event.key === 'Enter') addRecusado();"
+          type="file"
+          id="file-input"
+          accept=".json"
+          style="display: none"
+          onchange="importData(event)"
         />
-        <input type="date" id="input-rec-date" />
-        <button class="btn-add" onclick="addRecusado()">+</button>
       </div>
-      <div id="list-recusados"></div>
-      <div id="pg-recusados"></div>
+
     </div>
 
-    <div class="footer">
-      <button class="btn-io" onclick="exportData()">⬇ Exportar</button>
-      <button
-        class="btn-io"
-        onclick="document.getElementById('file-input').click()"
-      >
-        ⬆ Importar
-      </button>
-      <input
-        type="file"
-        id="file-input"
-        accept=".json"
-        style="display: none"
-        onchange="importData(event)"
-      />
-    </div>
+    <button id="bg-toggle" class="bg-toggle" onclick="toggleBackground()" title="Alternar fundo">🖼️</button>
 
     <script src="script.js"></script>
   </body>

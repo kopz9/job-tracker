@@ -1,41 +1,45 @@
-const LABELS = {
-  enviado: "Enviado",
-  rh: "Entrevista RH",
-  tecnico: "Técnica",
-  final: "Final",
-  oferta: "Oferta",
-  recusado: "Recusado",
-  ghosted: "Ghosted",
-  recusado: "Recusado"
-};
+const STAGES = [
+  { key: "interview", label: "Interview", desc: "Active loops and take-homes." },
+  { key: "offer", label: "Offer", desc: "Final-stage or offer conversations." },
+  { key: "rejected", label: "Rejected", desc: "Not moving forward." },
+];
 
 const PER_PAGE = 5;
+const MAX_NAME_LENGTH = 30;
 
-let state = { count: 0, entrevistas: [], recusados: [] };
-let pages = { entrevistas: 0, recusados: 0 };
+let state = { count: 0, applications: [] };
+let pages = { interview: 1, offer: 1, rejected: 1 };
+let draggedId = null;
 
 function load() {
   const s = localStorage.getItem("jobtracker");
-  if (s) state = JSON.parse(s);
+  if (s) {
+    try {
+      const parsed = JSON.parse(s);
+      state = {
+        count: parsed.count ?? 0,
+        applications: parsed.applications ?? [],
+      };
+    } catch {
+      state = { count: 0, applications: [] };
+    }
+  }
+  document.getElementById("input-date").value = today();
   render();
 }
 
-function resetCount() {
-  if (!confirm("Tem certeza que deseja zerar o contador?")) return;
-  state = { count: 0, entrevistas: [], recusados: [] };
-  pages = { entrevistas: 0, recusados: 0 };
-  save();
-  render();
+function loadBgMode() {
+  const mode = localStorage.getItem("jobtracker_bg") || "image";
+  document.body.classList.toggle("bg-grey", mode === "grey");
+}
+
+function toggleBackground() {
+  const isGrey = document.body.classList.toggle("bg-grey");
+  localStorage.setItem("jobtracker_bg", isGrey ? "grey" : "image");
 }
 
 function save() {
   localStorage.setItem("jobtracker", JSON.stringify(state));
-}
-
-function change(d) {
-  state.count = Math.max(0, state.count + d);
-  save();
-  render();
 }
 
 function today() {
@@ -48,149 +52,135 @@ function formatDate(d) {
   return `${day}/${m}/${y}`;
 }
 
-function addEntry() {
+function change(d) {
+  state.count = Math.max(0, state.count + d);
+  save();
+  render();
+}
+
+function resetCount() {
+  if (!confirm("Tem certeza que deseja zerar o contador?")) return;
+  state.count = 0;
+  save();
+  render();
+}
+
+function addApplication() {
   const name = document.getElementById("input-empresa").value.trim();
-  const status = document.getElementById("input-status").value;
   const date = document.getElementById("input-date").value || today();
   if (!name) return alert("Nome nao pode ser vazio!");
-  state.entrevistas.push({ id: Date.now(), name, status, date });
+  if (name.length > MAX_NAME_LENGTH)
+    return alert(`Nome muito longo (max ${MAX_NAME_LENGTH} caracteres)!`);
+  state.applications.push({
+    id: Date.now(),
+    name,
+    date,
+    stage: "interview",
+  });
   document.getElementById("input-empresa").value = "";
   document.getElementById("input-date").value = today();
-  pages.entrevistas = 1;
+  pages.interview = 1;
   save();
-  renderList();
+  renderBoard();
 }
 
-function addRecusado() {
-  const name = document.getElementById("input-rec").value.trim();
-  const date = document.getElementById("input-rec-date").value || today();
-  if (!name) return alert("Nome nao pode ser vazio!");
-  state.recusados.push({ id: Date.now(), name, date });
-  document.getElementById("input-rec").value = "";
-  document.getElementById("input-rec-date").value = today();
-  pages.recusados = 1;
+function removeApplication(id) {
+  const app = state.applications.find((a) => a.id === id);
+  if (!app) return;
+  if (!confirm(`Remover "${app.name}"?`)) return;
+  state.applications = state.applications.filter((a) => a.id !== id);
   save();
-  renderList();
+  renderBoard();
 }
 
-function updateStatus(id, newStatus) {
-  const entry = state.entrevistas.find((e) => e.id === id);
-  if (entry) {
-    entry.status = newStatus;
-  }
+function moveApplication(id, newStage) {
+  const app = state.applications.find((a) => a.id === id);
+  if (!app || app.stage === newStage) return;
+  app.stage = newStage;
+  pages[newStage] = 1;
   save();
-  renderList();
+  renderBoard();
 }
 
-function removeEntry(id) {
-  state.entrevistas = state.entrevistas.filter((e) => e.id !== id);
-  const maxPage = Math.max(1, Math.ceil(state.entrevistas.length / PER_PAGE));
-  if (pages.entrevistas > maxPage) pages.entrevistas = maxPage;
-  save();
-  renderList();
-}
-
-function removeRecusado(id) {
-  state.recusados = state.recusados.filter((e) => e.id !== id);
-  const maxPage = Math.max(1, Math.ceil(state.recusados.length / PER_PAGE));
-  if (pages.recusados > maxPage) pages.recusados = maxPage;
-  save();
-  renderList();
+function getStageApps(stageKey) {
+  return state.applications
+    .filter((a) => a.stage === stageKey)
+    .sort((a, b) => b.id - a.id);
 }
 
 function paginate(list, page) {
   const start = (page - 1) * PER_PAGE;
-  return [...list].reverse().slice(start, start + PER_PAGE);
+  return list.slice(start, start + PER_PAGE);
 }
 
-function renderPagination(container, listKey) {
-  const total = state[listKey].length;
-  const totalPages = Math.ceil(total / PER_PAGE);
+function goPage(stageKey, page) {
+  pages[stageKey] = page;
+  renderBoard();
+}
+
+function renderPagination(stageKey, total) {
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   if (totalPages <= 1) return "";
-  const cur = pages[listKey];
-
-  const prev = `<button class="pg-btn" ${cur === 1 ? "disabled" : ""} onclick="goPage('${listKey}', ${cur - 1})">‹</button>`;
-  const next = `<button class="pg-btn" ${cur === totalPages ? "disabled" : ""} onclick="goPage('${listKey}', ${cur + 1})">›</button>`;
+  const cur = pages[stageKey];
+  const prev = `<button class="pg-btn" ${cur === 1 ? "disabled" : ""} onclick="goPage('${stageKey}', ${cur - 1})">‹</button>`;
+  const next = `<button class="pg-btn" ${cur === totalPages ? "disabled" : ""} onclick="goPage('${stageKey}', ${cur + 1})">›</button>`;
   const info = `<span class="pg-info">${cur} / ${totalPages}</span>`;
-
   return `<div class="pagination">${prev}${info}${next}</div>`;
 }
 
-function goPage(listKey, page) {
-  pages[listKey] = page;
-  renderList();
+function cardHTML(a) {
+  return `
+    <div class="kcard" draggable="true" data-id="${a.id}"
+      ondragstart="onDragStart(event, ${a.id})">
+      <div class="kcard-top">
+        <span class="kcard-name">${a.name}</span>
+        <button class="btn-del" onclick="removeApplication(${a.id})">✕</button>
+      </div>
+      <div class="kcard-date">${formatDate(a.date)}</div>
+    </div>`;
 }
 
-function renderList() {
-  // Entrevistas
-  const el = document.getElementById("list-entrevistas");
-  const pgE = document.getElementById("pg-entrevistas");
+function renderColumn(stage) {
+  const all = getStageApps(stage.key);
+  const slice = paginate(all, pages[stage.key]);
+  const cardsHTML = slice.length
+    ? slice.map(cardHTML).join("")
+    : `<div class="empty">Drop applications here.</div>`;
 
-  if (!state.entrevistas.length) {
-    el.innerHTML = '<div class="empty">Nenhuma entrevista ainda</div>';
-    pgE.innerHTML = "";
-  } else {
-    const slice = paginate(state.entrevistas, pages.entrevistas);
-    el.innerHTML = slice
-      .map(
-        (e) => `
-       <div class="entry">
-         <span class="entry-name">${e.name}</span>
-        <span class="entry-date">${formatDate(e.date)}</span>
-        <select class="status-select ${e.status}" onchange="updateStatus(${e.id}, this.value)">
-          ${Object.entries(LABELS)
-            .map(
-              ([k, v]) =>
-                `<option value="${k}" ${e.status === k ? "selected" : ""}>${v}</option>`,
-            )
-            .join("")}
-        </select>
-        <button class="btn-del" onclick="removeEntry(${e.id})">✕</button>
+  return `
+    <div class="column" data-stage="${stage.key}"
+      ondragover="onDragOver(event)" ondrop="onDrop(event, '${stage.key}')">
+      <div class="column-header">
+        <span class="column-title">${stage.label}</span>
+        <span class="column-count">${all.length}</span>
       </div>
-        `,
-      )
-      .join("");
-    pgE.innerHTML = renderPagination("list-entrevistas", "entrevistas");
-  }
+      <div class="column-desc">${stage.desc}</div>
+      <div class="column-list">${cardsHTML}</div>
+      ${renderPagination(stage.key, all.length)}
+    </div>`;
+}
 
-  // Recusados
-  const er = document.getElementById("list-recusados");
-  const pgR = document.getElementById("pg-recusados");
-
-  if (!state.recusados.length) {
-    er.innerHTML = '<div class="empty">Nenhuma recusa registrada</div>';
-    pgR.innerHTML = "";
-  } else {
-    const slice = paginate(state.recusados, pages.recusados);
-    er.innerHTML = slice
-      .map(
-        (e) => `
-      <div class="entry">
-        <span class="entry-name">${e.name}</span>
-        <span class="entry-date">${formatDate(e.date)}</span>
-        <span class="badge recusado">Recusado</span>
-        <button class="btn-del" onclick="removeRecusado(${e.id})">✕</button>
-      </div>`,
-      )
-      .join("");
-    pgR.innerHTML = renderPagination("list-recusados", "recusados");
-  }
+function renderBoard() {
+  document.getElementById("board").innerHTML = STAGES.map(renderColumn).join("");
 }
 
 function render() {
   document.getElementById("count").textContent = state.count;
-  renderList();
+  renderBoard();
 }
 
-function switchTab(tab, btn) {
-  document
-    .querySelectorAll(".tab")
-    .forEach((t) => t.classList.remove("active"));
-  btn.classList.add("active");
-  document.getElementById("panel-entrevistas").style.display =
-    tab === "entrevistas" ? "" : "none";
-  document.getElementById("panel-recusados").style.display =
-    tab === "recusados" ? "" : "none";
+function onDragStart(e, id) {
+  draggedId = id;
+  e.dataTransfer.setData("text/plain", id);
+}
+function onDragOver(e) {
+  e.preventDefault();
+}
+function onDrop(e, stageKey) {
+  e.preventDefault();
+  const id = Number(e.dataTransfer.getData("text/plain")) || draggedId;
+  moveApplication(id, stageKey);
+  draggedId = null;
 }
 
 function exportData() {
@@ -209,7 +199,12 @@ function importData(e) {
   const r = new FileReader();
   r.onload = (ev) => {
     try {
-      state = JSON.parse(ev.target.result);
+      const parsed = JSON.parse(ev.target.result);
+      state = {
+        count: parsed.count ?? 0,
+        applications: parsed.applications ?? [],
+      };
+      pages = { interview: 1, offer: 1, rejected: 1 };
       save();
       render();
     } catch {
@@ -218,20 +213,9 @@ function importData(e) {
   };
   r.readAsText(file);
   e.target.value = "";
-
-  function load() {
-    const s = localStroage.getItem("jobtracker");
-    if (s) {
-      state = {
-        count: parsed.count ?? 0,
-        entrevistas: parsed.entrevistas ?? [],
-        recusados: parsed.recusados ?? [],
-      };
-    }
-    document.getElementById("input-date").value = today();
-    document.getElementById("input-rec-date").value = today();
-    render();
-  }
 }
 
-document.addEventListener("DOMContentLoaded", load);
+document.addEventListener("DOMContentLoaded", () => {
+  load();
+  loadBgMode();
+});
