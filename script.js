@@ -1,5 +1,9 @@
 const STAGES = [
-  { key: "interview", label: "Interview", desc: "Active loops and take-homes." },
+  {
+    key: "interview",
+    label: "Interview",
+    desc: "Active loops and take-homes.",
+  },
   { key: "offer", label: "Offer", desc: "Final-stage or offer conversations." },
   { key: "rejected", label: "Rejected", desc: "Not moving forward." },
 ];
@@ -76,6 +80,7 @@ function addApplication() {
     name,
     date,
     stage: "interview",
+    rejectTiming: null,
   });
   document.getElementById("input-empresa").value = "";
   document.getElementById("input-date").value = today();
@@ -129,6 +134,16 @@ function renderPagination(stageKey, total) {
 }
 
 function cardHTML(a) {
+  const timingDropdown =
+    a.stage === "rejected"
+      ? `
+    <select class="reject-timing" onchange="updateRejectTiming(${a.id}, this.value)">
+      <option value="" ${!a.rejectTiming ? "selected" : ""} disabled>When?</option>
+      <option value="before" ${a.rejectTiming === "before" ? "selected" : ""}>Before interview</option>
+      <option value="after" ${a.rejectTiming === "after" ? "selected" : ""}>After interview</option>
+    </select>`
+      : "";
+
   return `
     <div class="kcard" draggable="true" data-id="${a.id}"
       ondragstart="onDragStart(event, ${a.id})">
@@ -137,6 +152,7 @@ function cardHTML(a) {
         <button class="btn-del" onclick="removeApplication(${a.id})">✕</button>
       </div>
       <div class="kcard-date">${formatDate(a.date)}</div>
+      ${timingDropdown}
     </div>`;
 }
 
@@ -160,8 +176,15 @@ function renderColumn(stage) {
     </div>`;
 }
 
+function updateRejectTiming(id, value) {
+  const app = state.applications.find((a) => a.id === id);
+  if (app) app.rejectTiming = value;
+  save();
+}
+
 function renderBoard() {
-  document.getElementById("board").innerHTML = STAGES.map(renderColumn).join("");
+  document.getElementById("board").innerHTML =
+    STAGES.map(renderColumn).join("");
 }
 
 function render() {
